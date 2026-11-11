@@ -55,9 +55,19 @@ jobs:
           EOF
       - name: Compilar
         run: ./gradle-8.5/bin/gradle :app:assembleDebug --no-daemon
-      - name: Ver tamanho
-        run: find app -name "*.apk" -exec ls -lh {} \;
+      - name: Achar APK real
+        run: |
+          echo "--- Todos arquivos ---"
+          find app/build -type f -name "*.apk" -o -name "*.aab" | xargs ls -lh
+          echo "--- Copiando o maior ---"
+          find app/build -name "*.apk" -exec ls -S {} + | head -1
+          REAL=$(find app/build -name "*.apk" -type f -exec ls -S {} + | head -1 | awk '{print $NF}')
+          echo "REAL=$REAL"
+          ls -lh $REAL
+          mkdir -p /tmp/final
+          cp $REAL /tmp/final/Fazenda50.apk
+          ls -lh /tmp/final/
       - uses: actions/upload-artifact@v4
         with:
           name: Fazenda50-APK-REAL
-          path: app/build/outputs/apk/debug/app-debug.apk
+          path: /tmp/final/Fazenda50.apk
