@@ -9,10 +9,40 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-      - run: |
+      - name: Criar arquivos do App
+        run: |
           mkdir -p app/src/main/java/com/fazenda50/client
-          echo "package com.fazenda50.client; import android.app.Activity; import android.os.Bundle; import android.webkit.WebView; public class MainActivity extends Activity { protected void onCreate(Bundle b){ super.onCreate(b); WebView w=new WebView(this); w.getSettings().setJavaScriptEnabled(true); w.loadUrl(\"https://fazenda-50.onrender.com\"); setContentView(w); } }" > app/src/main/java/com/fazenda50/client/MainActivity.java
-          echo '<?xml version="1.0" encoding="utf-8"?><manifest xmlns:android="http://schemas.android.com/apk/res/android"><uses-permission android:name="android.permission.INTERNET"/><application android:label="Fazenda-50"><activity android:name=".MainActivity" android:exported="true"><intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter></activity></application></manifest>' > app/src/main/AndroidManifest.xml
+          cat > app/src/main/java/com/fazenda50/client/MainActivity.java << 'EOF'
+          package com.fazenda50.client;
+          import android.app.Activity;
+          import android.os.Bundle;
+          import android.webkit.WebView;
+          import android.webkit.WebViewClient;
+          public class MainActivity extends Activity {
+              protected void onCreate(Bundle b){
+                  super.onCreate(b);
+                  WebView w=new WebView(this);
+                  w.getSettings().setJavaScriptEnabled(true);
+                  w.setWebViewClient(new WebViewClient());
+                  w.loadUrl("https://fazenda-50.onrender.com");
+                  setContentView(w);
+              }
+          }
+          EOF
+          cat > app/src/main/AndroidManifest.xml << 'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+              <uses-permission android:name="android.permission.INTERNET"/>
+              <application android:label="Fazenda-50">
+                  <activity android:name=".MainActivity" android:exported="true">
+                      <intent-filter>
+                          <action android:name="android.intent.action.MAIN"/>
+                          <category android:name="android.intent.category.LAUNCHER"/>
+                      </intent-filter>
+                  </activity>
+              </application>
+          </manifest>
+          EOF
       - uses: gradle/gradle-build-action@v2
       - run: gradle :app:assembleDebug
       - uses: actions/upload-artifact@v4
