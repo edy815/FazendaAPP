@@ -9,14 +9,22 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-      - name: Criar Projeto Completo
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+      - name: Criar Projeto
         run: |
           rm -rf app
           mkdir -p app/src/main/java/com/fazenda50/client
-          echo "include ':app'" > settings.gradle
+          cat > settings.gradle << 'EOF'
+          pluginManagement { repositories { google(); mavenCentral(); gradlePluginPortal() } }
+          dependencyResolutionManagement { repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS); repositories { google(); mavenCentral() } }
+          rootProject.name = "Fazenda 50"
+          include ':app'
+          EOF
           cat > app/build.gradle << 'EOF'
           plugins { id 'com.android.application' }
           android {
+            namespace 'com.fazenda50.client'
             compileSdk 34
             defaultConfig { applicationId "com.fazenda50.client"; minSdk 21; targetSdk 34; versionCode 1; versionName "1.0" }
             buildTypes { release { minifyEnabled false } }
@@ -43,8 +51,10 @@ jobs:
           </manifest>
           EOF
       - uses: gradle/gradle-build-action@v2
+        with:
+          gradle-version: 8.5
       - run: gradle :app:assembleDebug --stacktrace
       - uses: actions/upload-artifact@v4
         with:
-          name: Fazenda50-APK-4MB
+          name: Fazenda50-APK
           path: app/build/outputs/apk/debug/app-debug.apk
