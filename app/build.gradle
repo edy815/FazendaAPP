@@ -1,0 +1,17 @@
+plugins {
+    id 'com.android.application'
+}
+android {
+    namespace 'com.fazenda50.client'
+    compileSdk 34
+    defaultConfig {
+        applicationId "com.fazenda50.client"
+        minSdk 24
+        targetSdk 34
+        versionCode 1
+        versionName "1.0"
+    }
+}
+dependencies {
+    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+}
