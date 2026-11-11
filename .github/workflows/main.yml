@@ -9,9 +9,11 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-      - name: Instalar Android 34
+      - name: Instalar Android e Gradle
         run: |
-          echo "y" | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platforms;android-34" "build-tools;34.0.0" "platform-tools"
+          echo "y" | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platforms;android-34" "build-tools;34.0.0"
+          wget -q https://services.gradle.org/distributions/gradle-8.5-bin.zip
+          unzip -q gradle-8.5-bin.zip
       - name: Criar Projeto
         run: |
           rm -rf app
@@ -51,12 +53,11 @@ jobs:
             </application>
           </manifest>
           EOF
-      - uses: gradle/gradle-build-action@v2
-        with:
-          gradle-version: 8.5
-      - run: gradle :app:assembleDebug --info | tail -100
-      - run: find . -name "*.apk" -ls
+      - name: Compilar
+        run: ./gradle-8.5/bin/gradle :app:assembleDebug --no-daemon
+      - name: Ver tamanho
+        run: find app -name "*.apk" -exec ls -lh {} \;
       - uses: actions/upload-artifact@v4
         with:
-          name: Fazenda50-APK
-          path: app/build/outputs/apk/debug/
+          name: Fazenda50-APK-REAL
+          path: app/build/outputs/apk/debug/app-debug.apk
