@@ -9,43 +9,42 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-      - name: Criar App
+      - name: Criar Projeto Completo
         run: |
+          rm -rf app
           mkdir -p app/src/main/java/com/fazenda50/client
+          echo "include ':app'" > settings.gradle
+          cat > app/build.gradle << 'EOF'
+          plugins { id 'com.android.application' }
+          android {
+            compileSdk 34
+            defaultConfig { applicationId "com.fazenda50.client"; minSdk 21; targetSdk 34; versionCode 1; versionName "1.0" }
+            buildTypes { release { minifyEnabled false } }
+          }
+          dependencies {}
+          EOF
+          cat > build.gradle << 'EOF'
+          plugins { id 'com.android.application' version '8.2.0' apply false }
+          EOF
           cat > app/src/main/java/com/fazenda50/client/MainActivity.java << 'EOF'
           package com.fazenda50.client;
-          import android.app.Activity;
-          import android.os.Bundle;
-          import android.webkit.WebView;
-          import android.webkit.WebViewClient;
+          import android.app.Activity; import android.os.Bundle; import android.webkit.WebView; import android.webkit.WebViewClient;
           public class MainActivity extends Activity {
-              protected void onCreate(Bundle b){
-                  super.onCreate(b);
-                  WebView w=new WebView(this);
-                  w.getSettings().setJavaScriptEnabled(true);
-                  w.setWebViewClient(new WebViewClient());
-                  w.loadUrl("https://fazenda-50.onrender.com");
-                  setContentView(w);
-              }
+            protected void onCreate(Bundle b){ super.onCreate(b); WebView w=new WebView(this); w.getSettings().setJavaScriptEnabled(true); w.setWebViewClient(new WebViewClient()); w.loadUrl("https://fazenda-50.onrender.com"); setContentView(w); }
           }
           EOF
           cat > app/src/main/AndroidManifest.xml << 'EOF'
           <?xml version="1.0" encoding="utf-8"?>
           <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-              <uses-permission android:name="android.permission.INTERNET"/>
-              <application android:label="Fazenda 50">
-                  <activity android:name=".MainActivity" android:exported="true">
-                      <intent-filter>
-                          <action android:name="android.intent.action.MAIN"/>
-                          <category android:name="android.intent.category.LAUNCHER"/>
-                      </intent-filter>
-                  </activity>
-              </application>
+            <uses-permission android:name="android.permission.INTERNET"/>
+            <application android:label="Fazenda 50">
+              <activity android:name=".MainActivity" android:exported="true"><intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter></activity>
+            </application>
           </manifest>
           EOF
       - uses: gradle/gradle-build-action@v2
       - run: gradle :app:assembleDebug --stacktrace
       - uses: actions/upload-artifact@v4
         with:
-          name: Fazenda50-APK-Correto
+          name: Fazenda50-APK-4MB
           path: app/build/outputs/apk/debug/app-debug.apk
