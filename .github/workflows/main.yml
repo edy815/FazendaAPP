@@ -20,6 +20,13 @@ jobs:
           mkdir -p app/src/main/java/com/fazenda50/client
           mkdir -p app/src/main/res/values
           cat > settings.gradle << 'EOF'
+          pluginManagement {
+            repositories {
+              google()
+              mavenCentral()
+              gradlePluginPortal()
+            }
+          }
           include ':app'
           EOF
           cat > app/build.gradle << 'EOF'
