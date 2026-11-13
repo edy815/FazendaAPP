@@ -22,7 +22,6 @@ jobs:
           EOF
           cat > build.gradle << 'EOF'
           plugins { id 'com.android.application' version '8.2.0' apply false }
-          task wrapper(type: Wrapper) { gradleVersion = '8.5' }
           EOF
           cat > app/build.gradle << 'EOF'
           plugins { id 'com.android.application' }
@@ -65,7 +64,7 @@ jobs:
         run: |
           gradle wrapper --gradle-version 8.5
           chmod +x gradlew
-          ./gradlew :app:assembleDebug --info
+          ./gradlew :app:assembleDebug
           ls -lh app/build/outputs/apk/debug/
 
       - name: Upload APK
@@ -73,4 +72,3 @@ jobs:
         with:
           name: Fazenda50-APK-Final
           path: app/build/outputs/apk/debug/app-debug.apk
-          if-no-files-found: error
