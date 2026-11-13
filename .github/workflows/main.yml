@@ -5,65 +5,78 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-java@v5
+      - uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
-      - name: Instalar Android e Gradle 7
+
+      - name: Criar Projeto Completo
         run: |
-          echo "y" | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platforms;android-33" "build-tools;33.0.1"
-          wget -q https://services.gradle.org/distributions/gradle-7.6-bin.zip
-          unzip -q gradle-7.6-bin.zip
-      - name: Criar Projeto
-        run: |
-          rm -rf app
+          rm -rf app build.gradle settings.gradle
           mkdir -p app/src/main/java/com/fazenda50/client
-          mkdir -p app/src/main/res/values
+          mkdir -p app/src/main
+          
           cat > settings.gradle << 'EOF'
-          pluginManagement {
-            repositories {
-              google()
-              mavenCentral()
-              gradlePluginPortal()
-            }
-          }
+          pluginManagement { repositories { google(); mavenCentral(); gradlePluginPortal() } }
+          dependencyResolutionManagement { repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS); repositories { google(); mavenCentral() } }
+          rootProject.name = "Fazenda 50"
           include ':app'
           EOF
+          
+          cat > build.gradle << 'EOF'
+          plugins { id 'com.android.application' version '8.2.0' apply false }
+          EOF
+          
           cat > app/build.gradle << 'EOF'
-          plugins { id 'com.android.application' version '7.4.2' }
+          plugins { id 'com.android.application' }
           android {
             namespace 'com.fazenda50.client'
-            compileSdk 33
-            defaultConfig { applicationId "com.fazenda50.client"; minSdk 21; targetSdk 33; versionCode 1; versionName "1.0" }
+            compileSdk 34
+            defaultConfig { applicationId "com.fazenda50.client"; minSdk 21; targetSdk 34; versionCode 1; versionName "1.0" }
             buildTypes { release { minifyEnabled false } }
+            compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
           }
           dependencies {}
           EOF
-          cat > build.gradle << 'EOF'
-          // empty
-          EOF
-          echo '<resources><string name="app_name">Fazenda 50</string></resources>' > app/src/main/res/values/strings.xml
+          
           cat > app/src/main/java/com/fazenda50/client/MainActivity.java << 'EOF'
           package com.fazenda50.client;
           import android.app.Activity; import android.os.Bundle; import android.webkit.WebView; import android.webkit.WebViewClient;
           public class MainActivity extends Activity {
-            protected void onCreate(Bundle b){ super.onCreate(b); WebView w=new WebView(this); w.getSettings().setJavaScriptEnabled(true); w.setWebViewClient(new WebViewClient()); w.loadUrl("https://fazenda-50.onrender.com"); setContentView(w); }
+            protected void onCreate(Bundle b){
+              super.onCreate(b);
+              WebView w=new WebView(this);
+              w.getSettings().setJavaScriptEnabled(true);
+              w.setWebViewClient(new WebViewClient());
+              w.loadUrl("https://fazenda-50.onrender.com");
+              setContentView(w);
+            }
           }
           EOF
+          
           cat > app/src/main/AndroidManifest.xml << 'EOF'
           <?xml version="1.0" encoding="utf-8"?>
           <manifest xmlns:android="http://schemas.android.com/apk/res/android">
             <uses-permission android:name="android.permission.INTERNET"/>
             <application android:label="Fazenda 50">
-              <activity android:name=".MainActivity" android:exported="true"><intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter></activity>
+              <activity android:name=".MainActivity" android:exported="true">
+                <intent-filter>
+                  <action android:name="android.intent.action.MAIN"/>
+                  <category android:name="android.intent.category.LAUNCHER"/>
+                </intent-filter>
+              </activity>
             </application>
           </manifest>
           EOF
-      - name: Compilar
-        run: ./gradle-7.6/bin/gradle :app:assembleDebug --no-daemon
-      - name: Ver tamanho
-        run: find app -name "*.apk" -exec ls -lh {} \;
-      - uses: actions/upload-artifact@v4
+
+      - name: Build APK
+        uses: gradle/gradle-build-action@v3
         with:
-          name: Fazenda50-APK-REAL
-          path: app/build/outputs/apk/debug/app-debug.apk
+          gradle-version: 8.5
+          arguments: :app:assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Fazenda50-APK-Final
+          path: app/build/outputs/apk/debug/*.apk
